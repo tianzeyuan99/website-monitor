@@ -1,0 +1,46 @@
+name: Build Windows Executable
+
+on:
+  workflow_dispatch:  # 手动触发
+  push:
+    branches: [ main, master ]
+    paths:
+      - '*.py'
+      - 'requirements.txt'
+      - 'templates/**'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Install Playwright browsers
+      run: |
+        python -m playwright install chromium
+        python -m playwright install-deps chromium
+    
+    - name: Build executable
+      run: |
+        pyinstaller --onefile --name "网站监测工具" --add-data "templates;templates" --hidden-import=flask --hidden-import=playwright --hidden-import=requests --hidden-import=parse_websites_elements --hidden-import=playwright.sync_api --hidden-import=playwright.async_api --hidden-import=playwright._impl._api_structures --console website_monitor_app.py
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: 网站监测工具-exe
+        path: dist/网站监测工具.exe
+        retention-days: 90
+

@@ -1,0 +1,55 @@
+========================================
+中国海油网站404链接监测工具 - 打包说明
+========================================
+
+【重要提示】
+由于当前在macOS系统，无法直接生成Windows exe文件。
+请在Windows电脑上按照以下步骤打包：
+
+【打包步骤】
+
+1. 将以下文件复制到Windows电脑：
+   - parse_websites_elements.py
+   - website_monitor_app.py
+   - templates/ 目录（包含index.html）
+   - requirements.txt
+   - 一键打包.bat
+
+2. 在Windows电脑上：
+   a) 双击运行"一键打包.bat"
+   b) 等待打包完成（可能需要5-10分钟）
+   c) 在dist目录找到"网站监测工具.exe"
+
+3. 将"网站监测工具.exe"复制给用户即可
+
+【手动打包命令（如果脚本失败）】
+
+打开命令提示符（CMD），执行：
+
+pip install -r requirements.txt
+python -m playwright install chromium
+pip install pyinstaller
+
+pyinstaller --onefile --name "网站监测工具" --add-data "templates;templates" --hidden-import=flask --hidden-import=playwright --hidden-import=requests --hidden-import=parse_websites_elements --hidden-import=playwright.sync_api --hidden-import=playwright.async_api --console website_monitor_app.py
+
+【文件清单】
+
+打包需要的文件：
+✓ parse_websites_elements.py  - 核心监测脚本
+✓ website_monitor_app.py      - Flask Web应用
+✓ templates/index.html        - 前端界面
+✓ requirements.txt            - 依赖列表
+✓ 一键打包.bat               - 打包脚本
+
+打包后生成：
+✓ dist/网站监测工具.exe      - 可执行文件（只需这一个文件）
+
+【用户使用】
+
+1. 双击"网站监测工具.exe"
+2. 等待浏览器自动打开
+3. 点击"开始监测"按钮
+4. 查看404链接结果
+
+========================================
+
