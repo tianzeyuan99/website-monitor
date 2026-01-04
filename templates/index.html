@@ -369,12 +369,28 @@
                 statusText.textContent = '监测完成';
                 progressFill.style.width = '100%';
                 startBtn.disabled = false;
+                // 停止定时器，避免继续刷新
+                if (statusCheckInterval) {
+                    clearInterval(statusCheckInterval);
+                    statusCheckInterval = null;
+                }
+                // 保存滚动位置
+                const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
                 load404Links();
+                // 恢复滚动位置
+                setTimeout(() => {
+                    window.scrollTo(0, scrollPosition);
+                }, 100);
             } else if (status.error) {
                 indicator.classList.add('error');
                 statusText.textContent = `错误: ${status.error}`;
                 startBtn.disabled = false;
                 showAlert('监测过程中发生错误: ' + status.error, 'error');
+                // 停止定时器
+                if (statusCheckInterval) {
+                    clearInterval(statusCheckInterval);
+                    statusCheckInterval = null;
+                }
             } else {
                 statusText.textContent = '就绪';
                 progressFill.style.width = '0%';
@@ -387,13 +403,21 @@
                 .then(response => response.json())
                 .then(data => {
                     updateStatus(data);
-                    if (!data.is_running && !data.completed) {
-                        clearInterval(statusCheckInterval);
-                        statusCheckInterval = null;
+                    // 如果监测完成或出错，停止定时器
+                    if (!data.is_running && (data.completed || data.error)) {
+                        if (statusCheckInterval) {
+                            clearInterval(statusCheckInterval);
+                            statusCheckInterval = null;
+                        }
                     }
                 })
                 .catch(error => {
                     console.error('获取状态失败:', error);
+                    // 出错时也停止定时器
+                    if (statusCheckInterval) {
+                        clearInterval(statusCheckInterval);
+                        statusCheckInterval = null;
+                    }
                 });
         }
         
@@ -420,6 +444,8 @@
         }
         
         function load404Links() {
+            // 保存当前滚动位置
+            const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
             const linksList = document.getElementById('linksList');
             linksList.innerHTML = '<div class="loading"><div class="spinner"></div><p>加载中...</p></div>';
             
@@ -441,6 +467,10 @@
                         `;
                         document.getElementById('statsContainer').style.display = 'none';
                     }
+                    // 恢复滚动位置
+                    setTimeout(() => {
+                        window.scrollTo(0, scrollPosition);
+                    }, 50);
                 })
                 .catch(error => {
                     linksList.innerHTML = `
@@ -449,6 +479,10 @@
                             <p>${error}</p>
                         </div>
                     `;
+                    // 恢复滚动位置
+                    setTimeout(() => {
+                        window.scrollTo(0, scrollPosition);
+                    }, 50);
                 });
         }
         
@@ -479,10 +513,11 @@
             document.getElementById('statsContainer').style.display = 'grid';
         }
         
-        // 页面加载时自动加载数据
+        // 页面加载时自动加载数据（只加载一次，不自动刷新）
         window.addEventListener('load', () => {
             load404Links();
             checkStatus();
+            // 不自动启动定时器，只在用户点击"开始监测"时启动
         });
     </script>
 </body>
